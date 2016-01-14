@@ -152,10 +152,12 @@ public class AWindow implements IAWindowNativeHandler, IVLCVout {
 
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                Log.d("AWindow","surfaceChanged format: " + format + ", width: " + width + ", height: " + height);
             }
 
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
+                Log.d("AWindow","surfaceDestroyed");
                 onSurfaceDestroyed();
             }
         };
@@ -175,6 +177,7 @@ public class AWindow implements IAWindowNativeHandler, IVLCVout {
 
                 @Override
                 public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+                    Log.d("AWindow","onSurfaceTextureDestroyed");
                     onSurfaceDestroyed();
                     return true;
                 }

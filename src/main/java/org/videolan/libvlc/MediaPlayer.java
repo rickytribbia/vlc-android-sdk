@@ -22,6 +22,8 @@
 
 package org.videolan.libvlc;
 
+import android.util.Log;
+
 @SuppressWarnings("unused")
 public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
@@ -330,6 +332,7 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
     private final AWindow mWindow = new AWindow(new AWindow.SurfaceCallback() {
         @Override
         public void onSurfacesCreated(AWindow vout) {
+            Log.d("MediaPlayer","onSurfaceCreated!");
             boolean play = false;
             boolean enableVideo = false;
             synchronized (MediaPlayer.this) {
@@ -346,6 +349,7 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
         @Override
         public void onSurfacesDestroyed(AWindow vout) {
+            Log.d("MediaPlayer","onSurfaceDestroyed!");
             boolean disableVideo = false;
             synchronized (MediaPlayer.this) {
                 if (mVoutCount > 0)
