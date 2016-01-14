@@ -68,7 +68,7 @@ public class VideoView extends SurfaceView
 
     //region Instance Fields
     private static LibVLC sLibVLC;
-    private MediaPlayer mediaPlayer = null;
+//    private MediaPlayer mediaPlayer = null;
 
     private VideoViewNativeCrashListener videoViewNativeCrashListener = null;
     private VLCEventListener vlcEventListener = null;
@@ -169,6 +169,22 @@ public class VideoView extends SurfaceView
         }
     }
 
+    public int getVolume(){
+        int result = 0;
+        if (mMediaPlayer != null){
+            result = mMediaPlayer.getVolume();
+            Log.d("VOLUME","VOLUME! " + result);
+        }
+        return result;
+    }
+
+    public void setVolume(int volume){
+        if (mMediaPlayer != null){
+            Log.d("VOLUME","VOLUME! " + volume);
+            mMediaPlayer.setVolume(volume);
+        }
+    }
+
     //endregion
 
     //region Protected, without modifier
@@ -217,7 +233,7 @@ public class VideoView extends SurfaceView
             mMediaPlayer.getVLCVout().addCallback(new IVLCVout.Callback() {
                 @Override
                 public void onNewLayout(IVLCVout vlcVout, int width, int height, int visibleWidth, int visibleHeight, int sarNum, int sarDen) {
-                    Log.d(TAG,"onNewLayout: " + width + ", " + height + "," + visibleWidth + ", " + visibleHeight + "," + sarNum + "," + sarDen);
+                    Log.d(TAG, "onNewLayout: " + width + ", " + height + "," + visibleWidth + ", " + visibleHeight + "," + sarNum + "," + sarDen);
                     mVideoWidth = width;
                     mVideoHeight = height;
                     requestLayout();
@@ -225,12 +241,12 @@ public class VideoView extends SurfaceView
 
                 @Override
                 public void onSurfacesCreated(IVLCVout vlcVout) {
-                    Log.d(TAG,"onsurfaces created");
+                    Log.d(TAG, "onsurfaces created");
                 }
 
                 @Override
                 public void onSurfacesDestroyed(IVLCVout vlcVout) {
-                    Log.d(TAG,"onsurfaces destroyed");
+                    Log.d(TAG, "onsurfaces destroyed");
                 }
             });
             mMediaPlayer.getVLCVout().setVideoView(this);
