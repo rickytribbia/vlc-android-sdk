@@ -159,19 +159,6 @@ public class VideoView extends SurfaceView
         invalidate();
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public void setVideoURI(Uri uri, Map<String, String> headers) {
-        setVideoURI(uri);
-    }
-
-
-    @TargetApi(Build.VERSION_CODES.FROYO)
-    public void suspend() {
-    }
-
-    public void resume() {
-    }
-
     public void stopPlayback() {
         if (mMediaPlayer != null) {
             mMediaPlayer.stop();
@@ -231,6 +218,9 @@ public class VideoView extends SurfaceView
                 @Override
                 public void onNewLayout(IVLCVout vlcVout, int width, int height, int visibleWidth, int visibleHeight, int sarNum, int sarDen) {
                     Log.d(TAG,"onNewLayout: " + width + ", " + height + "," + visibleWidth + ", " + visibleHeight + "," + sarNum + "," + sarDen);
+                    mVideoWidth = width;
+                    mVideoHeight = height;
+                    requestLayout();
                 }
 
                 @Override
@@ -246,56 +236,7 @@ public class VideoView extends SurfaceView
             mMediaPlayer.getVLCVout().setVideoView(this);
             mMediaPlayer.getVLCVout().attachViews();
 
-            mMediaPlayer.setEventListener(new org.videolan.libvlc.MediaPlayer.EventListener() {
-                @Override
-                public void onEvent(org.videolan.libvlc.MediaPlayer.Event event) {
-                    Log.d(TAG, "on VLC internal event: " + event + "(type: " + event.type + ",1: " + event.getTimeChanged() + ", 2: " + event.getPositionChanged() + ")");
-                    switch (event.type){
-                        case org.videolan.libvlc.MediaPlayer.Event.Opening:
-                            Log.d(TAG,"on VLC Internal event: OPENING");
-                            break;
-                        case org.videolan.libvlc.MediaPlayer.Event.Playing:
-                            Log.d(TAG,"on VLC Internal event: PLAYING");
-                            break;
-                        case org.videolan.libvlc.MediaPlayer.Event.Paused:
-                            Log.d(TAG,"on VLC Internal event: PAUSED");
-                            break;
-                        case org.videolan.libvlc.MediaPlayer.Event.Stopped:
-                            Log.d(TAG,"on VLC Internal event: STOPPED");
-                            break;
-                        case org.videolan.libvlc.MediaPlayer.Event.EndReached:
-                            Log.d(TAG,"on VLC Internal event: END REACHED");
-                            break;
-                        case org.videolan.libvlc.MediaPlayer.Event.EncounteredError:
-                            Log.d(TAG,"on VLC Internal event: ENCOUNTERED ERROR");
-                            break;
-                        case org.videolan.libvlc.MediaPlayer.Event.ESAdded:
-                            Log.d(TAG,"on VLC Internal event: ES ADDED");
-                            break;
-                        case org.videolan.libvlc.MediaPlayer.Event.PausableChanged:
-                            Log.d(TAG,"on VLC Internal event: PAUSABLE CHANGED");
-                            break;
-                        case org.videolan.libvlc.MediaPlayer.Event.ESDeleted:
-                            Log.d(TAG,"on VLC Internal event: ES DELETED");
-                            break;
-                        case org.videolan.libvlc.MediaPlayer.Event.PositionChanged:
-                            Log.d(TAG,"on VLC Internal event: POSITION CHANGED");
-                            break;
-                        case org.videolan.libvlc.MediaPlayer.Event.SeekableChanged:
-                            Log.d(TAG,"on VLC Internal event: SEEKABLE CHANGED");
-                            break;
-                        case org.videolan.libvlc.MediaPlayer.Event.TimeChanged:
-                            Log.d(TAG,"on VLC Internal event: TIME CHANGED");
-                            break;
-                        case org.videolan.libvlc.MediaPlayer.Event.Vout:
-                            Log.d(TAG,"on VLC Internal event: VOUT");
-                            break;
-                        default:
-                            Log.d(TAG,"on VLC Internal event: altro tipo di evento");
-                            break;
-                    }
-                }
-            });
+            mMediaPlayer.setEventListener(vlcEventListener);
 
             mCurrentState = STATE_PREPARING;
             mMediaPlayer.play();
@@ -305,7 +246,9 @@ public class VideoView extends SurfaceView
             Log.w(TAG, "Unable to open content: " + mUri, ex);
             mCurrentState = STATE_ERROR;
             mTargetState = STATE_ERROR;
-//            mErrorListener.onError(mMediaPlayer, android.media.MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
+            if (vlcEventListener != null){
+                vlcEventListener.onEvent(new org.videolan.libvlc.MediaPlayer.Event(org.videolan.libvlc.MediaPlayer.Event.NoContent));
+            }
             return;
         }
     }
@@ -337,6 +280,8 @@ public class VideoView extends SurfaceView
         int width = getDefaultSize(mVideoWidth, widthMeasureSpec);
         int height = getDefaultSize(mVideoHeight, heightMeasureSpec);
         if (mVideoWidth > 0 && mVideoHeight > 0) {
+
+            Log.d(TAG,"------------- MEASURE-VIDEOVIEW");
 
             int widthSpecMode = MeasureSpec.getMode(widthMeasureSpec);
             int widthSpecSize = MeasureSpec.getSize(widthMeasureSpec);
@@ -510,6 +455,7 @@ public class VideoView extends SurfaceView
     SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
         public void surfaceChanged(SurfaceHolder holder, int format,
                                    int w, int h) {
+            Log.d(TAG,"surfaceChanged!");
             mSurfaceWidth = w;
             mSurfaceHeight = h;
             boolean isValidState = (mTargetState == STATE_PLAYING);

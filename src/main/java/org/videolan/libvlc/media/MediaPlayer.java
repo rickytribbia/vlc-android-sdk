@@ -25,7 +25,6 @@ package org.videolan.libvlc.media;
 import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.MediaFormat;
-import android.media.TimedText;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -270,105 +269,6 @@ public class MediaPlayer
         }
     }
 
-    public TrackInfo[] getTrackInfo() throws IllegalStateException {
-        //FIXME
-        TrackInfo trackInfo[] = new TrackInfo[1];
-        return trackInfo;
-    }
-
-    public static final String MEDIA_MIMETYPE_TEXT_SUBRIP = "application/x-subrip";
-
-    public void addTimedTextSource(String path, String mimeType) {
-        mMediaPlayer.setSubtitleFile(path);
-    }
-
-    // FIXME: This is incorrect, since libVLC can only add local subtitles
-    public void addTimedTextSource(Context context, Uri uri, String mimeType) {
-        mMediaPlayer.setSubtitleFile(uri.getPath());
-    }
-
-    public void addTimedTextSource(FileDescriptor fd, String mimeType)
-            throws IllegalArgumentException, IllegalStateException {
-    }
-
-    public void addTimedTextSource(FileDescriptor fd, long offset, long length, String mime)
-            throws IllegalArgumentException, IllegalStateException {
-    }
-
-    public int getSelectedTrack(int trackType) throws IllegalStateException {
-        return 0;
-    }
-
-    public void selectTrack(int index) throws IllegalStateException {
-    }
-
-    public void deselectTrack(int index) throws IllegalStateException {
-    }
-
     @Override
     protected void finalize() {}
-
-    public interface OnPreparedListener
-    {
-        void onPrepared(MediaPlayer mp);
-    }
-
-    public void setOnPreparedListener(OnPreparedListener listener) {
-    }
-
-    public interface OnCompletionListener
-    {
-        void onCompletion(MediaPlayer mp);
-    }
-
-    public void setOnCompletionListener(OnCompletionListener listener) {
-    }
-
-    public interface OnBufferingUpdateListener
-    {
-        void onBufferingUpdate(MediaPlayer mp, int percent);
-    }
-
-    public void setOnBufferingUpdateListener(OnBufferingUpdateListener listener) {
-    }
-
-    public interface OnSeekCompleteListener
-    {
-        public void onSeekComplete(MediaPlayer mp);
-    }
-
-    public void setOnSeekCompleteListener(OnSeekCompleteListener listener) {
-    }
-
-    public interface OnVideoSizeChangedListener
-    {
-        public void onVideoSizeChanged(MediaPlayer mp, int width, int height);
-    }
-
-    public void setOnVideoSizeChangedListener(OnVideoSizeChangedListener listener) {
-    }
-
-    public interface OnTimedTextListener
-    {
-        public void onTimedText(MediaPlayer mp, TimedText text);
-    }
-
-    public void setOnTimedTextListener(OnTimedTextListener listener) {
-    }
-
-    public interface OnErrorListener
-    {
-        boolean onError(MediaPlayer mp, int what, int extra);
-    }
-
-    public void setOnErrorListener(OnErrorListener listener) {
-    }
-
-    public interface OnInfoListener
-    {
-        boolean onInfo(MediaPlayer mp, int what, int extra);
-    }
-
-    public void setOnInfoListener(OnInfoListener listener) {
-    }
 }

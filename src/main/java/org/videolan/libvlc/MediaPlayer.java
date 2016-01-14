@@ -22,6 +22,8 @@
 
 package org.videolan.libvlc;
 
+import android.graphics.Canvas;
+import android.graphics.PorterDuff;
 import android.util.Log;
 
 @SuppressWarnings("unused")
@@ -51,10 +53,11 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
         public static final int ESAdded             = 0x114;
         public static final int ESDeleted           = 0x115;
         //public static final int ESSelected          = 0x116;
+        public static final int NoContent          = 0x117;
 
         private final long arg1;
         private final float arg2;
-        protected Event(int type) {
+        public Event(int type) {
             super(type);
             this.arg1 = 0;
             this.arg2 = 0;
@@ -464,6 +467,14 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
             mPlayRequested = false;
             mPlaying = false;
             mAudioReset = true;
+
+            try {
+                Canvas canvas = ((AWindow) getVLCVout()).getVideoSurface().lockCanvas(null);
+                canvas.drawColor(0, PorterDuff.Mode.CLEAR);
+                ((AWindow) getVLCVout()).getVideoSurface().unlockCanvasAndPost(canvas);
+            }catch (IllegalArgumentException illegalArgumentException){
+                Log.d("VLC-MediaPlayer","La surface è già lockata");
+            }
         }
         nativeStop();
     }
