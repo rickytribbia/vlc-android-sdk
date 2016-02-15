@@ -1,18 +1,18 @@
 /*****************************************************************************
  * LibVLC.java
- *****************************************************************************
+ * ****************************************************************************
  * Copyright © 2010-2013 VLC authors and VideoLAN
- *
+ * <p>
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 2.1 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
@@ -20,13 +20,12 @@
 
 package org.videolan.libvlc;
 
-import java.util.ArrayList;
-
 import android.os.Build;
 import android.util.Log;
-import android.view.Surface;
 
 import org.videolan.libvlc.util.HWDecoderUtil;
+
+import java.util.ArrayList;
 
 public class LibVLC extends VLCObject<LibVLC.Event> {
     private static final String TAG = "VLC/LibVLC";
@@ -93,6 +92,7 @@ public class LibVLC extends VLCObject<LibVLC.Event> {
     public void setOnHardwareAccelerationError(HardwareAccelerationError error) {
         nativeSetOnHardwareAccelerationError(error);
     }
+
     private native void nativeSetOnHardwareAccelerationError(HardwareAccelerationError error);
 
     /**
@@ -143,24 +143,22 @@ public class LibVLC extends VLCObject<LibVLC.Event> {
      * @param name human-readable application name, e.g. "FooBar player 1.2.3"
      * @param http HTTP User Agent, e.g. "FooBar/1.2.3 Python/2.6.0"
      */
-    public void setUserAgent(String name, String http){
+    public void setUserAgent(String name, String http) {
         nativeSetUserAgent(name, http);
     }
 
     /* JNI */
     private native void nativeNew(String[] options);
+
     private native void nativeRelease();
+
     private native void nativeSetUserAgent(String name, String http);
 
     /* Load library before object instantiation */
     static {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1) {
             try {
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.HONEYCOMB_MR1)
-                    System.loadLibrary("anw.10");
-                else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.HONEYCOMB_MR2)
-                    System.loadLibrary("anw.13");
-                else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR1)
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR1)
                     System.loadLibrary("anw.14");
                 else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT_WATCH)
                     System.loadLibrary("anw.18");
@@ -171,11 +169,7 @@ public class LibVLC extends VLCObject<LibVLC.Event> {
             }
 
             try {
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1)
-                    System.loadLibrary("iomx.10");
-                else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.HONEYCOMB_MR2)
-                    System.loadLibrary("iomx.13");
-                else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR1)
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR1)
                     System.loadLibrary("iomx.14");
                 else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR2)
                     System.loadLibrary("iomx.18");
@@ -183,8 +177,7 @@ public class LibVLC extends VLCObject<LibVLC.Event> {
                     System.loadLibrary("iomx.19");
             } catch (Throwable t) {
                 // No need to warn if it isn't found, when we intentionally don't build these except for debug
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1)
-                    Log.w(TAG, "Unable to load the iomx library: " + t);
+                Log.w(TAG, "Unable to load the iomx library: " + t);
             }
         }
 
