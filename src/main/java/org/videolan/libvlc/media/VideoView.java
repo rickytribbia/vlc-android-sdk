@@ -155,8 +155,13 @@ public class VideoView extends SurfaceView
         initLibVLC();
         mUri = uri;
         openVideo();
-        requestLayout();
-        invalidate();
+        post(new Runnable() {
+            @Override
+            public void run() {
+                requestLayout();
+                invalidate();
+            }
+        });
     }
 
     public void stopPlayback() {
@@ -183,6 +188,18 @@ public class VideoView extends SurfaceView
             Log.d("VOLUME","VOLUME! " + volume);
             mMediaPlayer.setVolume(volume);
         }
+    }
+
+    /**
+     * Indicates that stream has audio track
+     * @return true if stream has audio track, false otherwise
+     */
+    public boolean streamHasAudio(){
+        boolean result = false;
+        if (mMediaPlayer != null){
+            result = mMediaPlayer.getAudioTracksCount() > 0;
+        }
+        return result;
     }
 
     //endregion
@@ -236,7 +253,12 @@ public class VideoView extends SurfaceView
                     Log.d(TAG, "onNewLayout: " + width + ", " + height + "," + visibleWidth + ", " + visibleHeight + "," + sarNum + "," + sarDen);
                     mVideoWidth = width;
                     mVideoHeight = height;
-                    requestLayout();
+                    post(new Runnable() {
+                        @Override
+                        public void run() {
+                            requestLayout();
+                        }
+                    });
                 }
 
                 @Override

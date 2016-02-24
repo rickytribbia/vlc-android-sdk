@@ -1,20 +1,20 @@
 /*****************************************************************************
  * MediaPlayer.java
- *****************************************************************************
+ * ****************************************************************************
  * Copyright © 2015 VLC authors and VideoLAN
- *
+ * <p>
  * Authors  Jean-Baptiste Kempf <jb@videolan.org>
- *
+ * <p>
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 2.1 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
@@ -29,70 +29,82 @@ import android.util.Log;
 @SuppressWarnings("unused")
 public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
+    private final static String TAG = MediaPlayer.class.getSimpleName();
+
     public static class Event extends VLCEvent {
         //public static final int MediaChanged        = 0x100;
         //public static final int NothingSpecial      = 0x101;
-        public static final int Opening             = 0x102;
+        public static final int Opening = 0x102;
         //public static final int Buffering           = 0x103;
-        public static final int Playing             = 0x104;
-        public static final int Paused              = 0x105;
-        public static final int Stopped             = 0x106;
+        public static final int Playing = 0x104;
+        public static final int Paused = 0x105;
+        public static final int Stopped = 0x106;
         //public static final int Forward             = 0x107;
         //public static final int Backward            = 0x108;
-        public static final int EndReached          = 0x109;
-        public static final int EncounteredError   = 0x10a;
-        public static final int TimeChanged         = 0x10b;
-        public static final int PositionChanged     = 0x10c;
-        public static final int SeekableChanged     = 0x10d;
-        public static final int PausableChanged     = 0x10e;
+        public static final int EndReached = 0x109;
+        public static final int EncounteredError = 0x10a;
+        public static final int TimeChanged = 0x10b;
+        public static final int PositionChanged = 0x10c;
+        public static final int SeekableChanged = 0x10d;
+        public static final int PausableChanged = 0x10e;
         //public static final int TitleChanged        = 0x10f;
         //public static final int SnapshotTaken       = 0x110;
         //public static final int LengthChanged       = 0x111;
-        public static final int Vout                = 0x112;
+        public static final int Vout = 0x112;
         //public static final int ScrambledChanged    = 0x113;
-        public static final int ESAdded             = 0x114;
-        public static final int ESDeleted           = 0x115;
+        public static final int ESAdded = 0x114;
+        public static final int ESDeleted = 0x115;
         //public static final int ESSelected          = 0x116;
-        public static final int NoContent          = 0x117;
+        public static final int NoContent = 0x117;
 
         private final long arg1;
         private final float arg2;
+
         public Event(int type) {
             super(type);
             this.arg1 = 0;
             this.arg2 = 0;
         }
+
         protected Event(int type, long arg1) {
             super(type);
             this.arg1 = arg1;
             this.arg2 = 0;
         }
+
         protected Event(int type, float arg2) {
             super(type);
             this.arg1 = 0;
             this.arg2 = arg2;
         }
+
         public long getTimeChanged() {
             return arg1;
         }
+
         public float getPositionChanged() {
             return arg2;
         }
+
         public int getVoutCount() {
             return (int) arg1;
         }
+
         public int getEsChangedType() {
             return (int) arg1;
         }
+
         public boolean getPausable() {
             return arg1 != 0;
         }
+
         public boolean getSeekable() {
             return arg1 != 0;
         }
     }
 
-    public interface EventListener extends VLCEvent.Listener<MediaPlayer.Event> {}
+    public interface EventListener extends VLCEvent.Listener<MediaPlayer.Event> {
+    }
 
     public static class Position {
         public static final int Disable = -1;
@@ -238,7 +250,7 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
          * This name can be used, for example, to prepare a preset label or menu in a user
          * interface.
          *
-         * @param  index index of the preset, counting from zero.
+         * @param index index of the preset, counting from zero.
          * @return preset name, or NULL if there is no such preset
          */
 
@@ -304,23 +316,33 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
          * The supplied amplification value will be clamped to the -20.0 to +20.0 range.
          *
          * @param index counting from zero, of the frequency band to set.
-         * @param amp amplification value (-20.0 to 20.0 Hz).
-         * \return true on success.
+         * @param amp   amplification value (-20.0 to 20.0 Hz).
+         *              \return true on success.
          */
         public boolean setAmp(int index, float amp) {
             return nativeSetAmp(index, amp);
         }
 
         private static native int nativeGetPresetCount();
+
         private static native String nativeGetPresetName(int index);
+
         private static native int nativeGetBandCount();
+
         private static native float nativeGetBandFrequency(int index);
+
         private native void nativeNew();
+
         private native void nativeNewFromPreset(int index);
+
         private native void nativeRelease();
+
         private native float nativeGetPreAmp();
+
         private native boolean nativeSetPreAmp(float preamp);
+
         private native float nativeGetAmp(int index);
+
         private native boolean nativeSetAmp(int index, float amp);
     }
 
@@ -335,7 +357,7 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
     private final AWindow mWindow = new AWindow(new AWindow.SurfaceCallback() {
         @Override
         public void onSurfacesCreated(AWindow vout) {
-            Log.d("MediaPlayer","onSurfaceCreated!");
+            Log.d("MediaPlayer", "onSurfaceCreated!");
             boolean play = false;
             boolean enableVideo = false;
             synchronized (MediaPlayer.this) {
@@ -352,7 +374,7 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
         @Override
         public void onSurfacesDestroyed(AWindow vout) {
-            Log.d("MediaPlayer","onSurfaceDestroyed!");
+            Log.d("MediaPlayer", "onSurfaceDestroyed!");
             boolean disableVideo = false;
             synchronized (MediaPlayer.this) {
                 if (mVoutCount > 0)
@@ -436,7 +458,6 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
     /**
      * Play the media
-     *
      */
     public void play() {
         synchronized (this) {
@@ -460,23 +481,33 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
     /**
      * Stops the playing media
-     *
      */
     public void stop() {
+        Log.d("VLC-MediaPlayer", "MP >>>> stop 1");
         synchronized (this) {
             mPlayRequested = false;
             mPlaying = false;
             mAudioReset = true;
 
+            Log.d("VLC-MediaPlayer", "MP >>>> stop 2 ");
+
             try {
-                Canvas canvas = ((AWindow) getVLCVout()).getVideoSurface().lockCanvas(null);
-                canvas.drawColor(0, PorterDuff.Mode.CLEAR);
-                ((AWindow) getVLCVout()).getVideoSurface().unlockCanvasAndPost(canvas);
-            }catch (IllegalArgumentException illegalArgumentException){
-                Log.d("VLC-MediaPlayer","La surface è già lockata");
+                if (getVLCVout() != null && ((AWindow) getVLCVout()).getVideoSurface() != null) {
+                    Log.d(TAG, "lock canvas!");
+                    Canvas canvas = ((AWindow) getVLCVout()).getVideoSurface().lockCanvas(null);
+                    Log.d(TAG, "lock canvas! - 1 ");
+                    canvas.drawColor(0, PorterDuff.Mode.CLEAR);
+                    Log.d(TAG, "lock canvas! - 2 ");
+                    ((AWindow) getVLCVout()).getVideoSurface().unlockCanvasAndPost(canvas);
+                    Log.d(TAG, "lock canvas! - 3 ");
+                }
+            } catch (IllegalArgumentException illegalArgumentException) {
+                Log.d("VLC-MediaPlayer", "La surface è già lockata", illegalArgumentException);
             }
         }
+        Log.d("VLC-MediaPlayer", "MP >>>> stop 3 ");
         nativeStop();
+        Log.d("VLC-MediaPlayer", "MP >>>> stop 4 ");
     }
 
     /**
@@ -694,21 +725,21 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
     /**
      * Apply new equalizer settings to a media player.
-     *
+     * <p>
      * The equalizer is first created by invoking {@link Equalizer#create()} or
      * {@link Equalizer#createFromPreset(int)}}.
-     *
+     * <p>
      * It is possible to apply new equalizer settings to a media player whether the media
      * player is currently playing media or not.
-     *
+     * <p>
      * Invoking this method will immediately apply the new equalizer settings to the audio
      * output of the currently playing media if there is any.
-     *
+     * <p>
      * If there is no currently playing media, the new equalizer settings will be applied
      * later if and when new media is played.
-     *
+     * <p>
      * Equalizer settings will automatically be applied to subsequently played media.
-     *
+     * <p>
      * To disable the equalizer for a media player invoke this method passing null.
      *
      * @return true on success.
@@ -766,18 +797,21 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
     /**
      * Sets volume as integer
+     *
      * @param volume: Volume level passed as integer
      */
     public native int setVolume(int volume);
 
     /**
      * Gets the current movie time (in ms).
+     *
      * @return the movie time (in ms), or -1 if there is no media.
      */
     public native long getTime();
 
     /**
      * Sets the movie time (in ms), if any media is being played.
+     *
      * @param time: Time in ms.
      * @return the movie time (in ms), or -1 if there is no media.
      */
@@ -785,28 +819,37 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
     /**
      * Gets the movie position.
+     *
      * @return the movie position, or -1 for any error.
      */
     public native float getPosition();
 
     /**
      * Sets the movie position.
+     *
      * @param pos: movie position.
      */
     public native void setPosition(float pos);
 
     /**
      * Gets current movie's length in ms.
+     *
      * @return the movie length (in ms), or -1 if there is no media.
      */
     public native long getLength();
 
     public native int getTitle();
+
     public native void setTitle(int title);
+
     public native int getChapter();
+
     public native int previousChapter();
+
     public native int nextChapter();
+
     public native void setChapter(int chapter);
+
     public native void navigate(int navigate);
 
     public synchronized void setEventListener(EventListener listener) {
@@ -851,32 +894,60 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
     /* JNI */
     private native void nativeNewFromLibVlc(LibVLC libVLC, IAWindowNativeHandler window);
+
     private native void nativeNewFromMedia(Media media, IAWindowNativeHandler window);
+
     private native void nativeRelease();
+
     private native void nativeSetMedia(Media media);
+
     private native void nativePlay();
+
     private native void nativeStop();
+
     private native void nativeSetVideoTitleDisplay(int position, int timeout);
+
     private native boolean nativeSetAudioOutput(String aout);
+
     private native boolean nativeSetAudioOutputDevice(String id);
+
     private native Title[] nativeGetTitles();
+
     private native Chapter[] nativeGetChapters(int title);
+
     private native int nativeGetVideoTracksCount();
+
     private native TrackDescription[] nativeGetVideoTracks();
+
     private native int nativeGetVideoTrack();
+
     private native boolean nativeSetVideoTrack(int index);
+
     private native int nativeGetAudioTracksCount();
+
     private native TrackDescription[] nativeGetAudioTracks();
+
     private native int nativeGetAudioTrack();
+
     private native boolean nativeSetAudioTrack(int index);
+
     private native long nativeGetAudioDelay();
+
     private native boolean nativeSetAudioDelay(long delay);
+
     private native int nativeGetSpuTracksCount();
+
     private native TrackDescription[] nativeGetSpuTracks();
+
     private native int nativeGetSpuTrack();
+
     private native boolean nativeSetSpuTrack(int index);
+
     private native long nativeGetSpuDelay();
+
     private native boolean nativeSetSpuDelay(long delay);
+
     private native boolean nativeSetSubtitleFile(String path);
+
     private native boolean nativeSetEqualizer(Equalizer equalizer);
 }
