@@ -26,6 +26,9 @@ import android.graphics.Canvas;
 import android.graphics.PorterDuff;
 import android.util.Log;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 @SuppressWarnings("unused")
 public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
@@ -377,21 +380,29 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
             Log.d("MediaPlayer", "onSurfaceDestroyed!");
             boolean disableVideo = false;
             synchronized (MediaPlayer.this) {
-                if (mVoutCount > 0)
+                Log.d("MediaPlayer", "onSurfaceDestroyed - 1");
+                if (mVoutCount > 0) {
+                    Log.d("MediaPlayer", "onSurfaceDestroyed - 2");
                     disableVideo = true;
+                }
             }
-            if (disableVideo)
+            if (disableVideo) {
+                Log.d("MediaPlayer", "onSurfaceDestroyed - 3");
                 setVideoTrackEnabled(false);
+            }
             synchronized (MediaPlayer.this) {
+                Log.d("MediaPlayer", "onSurfaceDestroyed - 4");
                 /* Wait for Vout destruction (mVoutCount = 0) in order to be sure that the surface is not
                  * used after leaving this callback. This shouldn't be needed when using MediaCodec or
                  * AndroidWindow (i.e. after Android 2.3) since the surface is ref-counted */
                 while (mVoutCount > 0) {
                     try {
+                        Log.d(TAG, "......Wait");
                         MediaPlayer.this.wait();
                     } catch (InterruptedException ignored) {
                     }
                 }
+                Log.d("MediaPlayer", "onSurfaceDestroyed - 5");
             }
         }
     });
@@ -490,23 +501,36 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
             mAudioReset = true;
 
             Log.d("VLC-MediaPlayer", "MP >>>> stop 2 ");
-
             try {
                 if (getVLCVout() != null && ((AWindow) getVLCVout()).getVideoSurface() != null) {
-                    Log.d(TAG, "lock canvas!");
                     Canvas canvas = ((AWindow) getVLCVout()).getVideoSurface().lockCanvas(null);
-                    Log.d(TAG, "lock canvas! - 1 ");
                     canvas.drawColor(0, PorterDuff.Mode.CLEAR);
-                    Log.d(TAG, "lock canvas! - 2 ");
                     ((AWindow) getVLCVout()).getVideoSurface().unlockCanvasAndPost(canvas);
-                    Log.d(TAG, "lock canvas! - 3 ");
                 }
             } catch (IllegalArgumentException illegalArgumentException) {
                 Log.d("VLC-MediaPlayer", "La surface è già lockata", illegalArgumentException);
+            } catch (NullPointerException nullPointerException) {
+                Log.w(TAG, "errore durante il clear della view", nullPointerException);
             }
         }
         Log.d("VLC-MediaPlayer", "MP >>>> stop 3 ");
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Log.d(TAG, "NATIVE STOP NON é ancora finito!!");
+                Log.d(TAG, "isPlaying: " + isPlaying());
+                Log.d(TAG, "isReleased: " + isReleased());
+                Log.d(TAG,"videotracks: " + getVideoTracksCount());
+            }
+        }, 5000);
+
+        Log.d(TAG, "isPlaying: " + isPlaying());
+        Log.d(TAG, "isReleased: " + isReleased());
+        Log.d(TAG,"videotracks: " + getVideoTracksCount());
         nativeStop();
+        timer.cancel();
         Log.d("VLC-MediaPlayer", "MP >>>> stop 4 ");
     }
 

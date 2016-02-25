@@ -26,6 +26,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -42,7 +43,6 @@ import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 public class VideoView extends SurfaceView
         implements MediaController.MediaPlayerControl {
@@ -166,6 +166,7 @@ public class VideoView extends SurfaceView
 
     public void stopPlayback() {
         if (mMediaPlayer != null) {
+            Log.d(TAG,"stop playback");
             mMediaPlayer.stop();
             mMediaPlayer.release();
             mMediaPlayer = null;
@@ -174,29 +175,30 @@ public class VideoView extends SurfaceView
         }
     }
 
-    public int getVolume(){
+    public int getVolume() {
         int result = 0;
-        if (mMediaPlayer != null){
+        if (mMediaPlayer != null) {
             result = mMediaPlayer.getVolume();
-            Log.d("VOLUME","VOLUME! " + result);
+            Log.d("VOLUME", "VOLUME! " + result);
         }
         return result;
     }
 
-    public void setVolume(int volume){
-        if (mMediaPlayer != null){
-            Log.d("VOLUME","VOLUME! " + volume);
+    public void setVolume(int volume) {
+        if (mMediaPlayer != null) {
+            Log.d("VOLUME", "VOLUME! " + volume);
             mMediaPlayer.setVolume(volume);
         }
     }
 
     /**
      * Indicates that stream has audio track
+     *
      * @return true if stream has audio track, false otherwise
      */
-    public boolean streamHasAudio(){
+    public boolean streamHasAudio() {
         boolean result = false;
-        if (mMediaPlayer != null){
+        if (mMediaPlayer != null) {
             result = mMediaPlayer.getAudioTracksCount() > 0;
         }
         return result;
@@ -243,67 +245,82 @@ public class VideoView extends SurfaceView
 
         // we shouldn't clear the target state, because somebody might have
         // called start() previously
-        release(false);
-        try {
-            mMediaPlayer = new org.videolan.libvlc.MediaPlayer(sLibVLC);
-            mMediaPlayer.setMedia(new Media(sLibVLC, mUri));
-            mMediaPlayer.getVLCVout().addCallback(new IVLCVout.Callback() {
-                @Override
-                public void onNewLayout(IVLCVout vlcVout, int width, int height, int visibleWidth, int visibleHeight, int sarNum, int sarDen) {
-                    Log.d(TAG, "onNewLayout: " + width + ", " + height + "," + visibleWidth + ", " + visibleHeight + "," + sarNum + "," + sarDen);
-                    mVideoWidth = width;
-                    mVideoHeight = height;
-                    post(new Runnable() {
+        release(false, new CompletionBlock() {
+            @Override
+            public void complete() {
+                try {
+                    mMediaPlayer = new org.videolan.libvlc.MediaPlayer(sLibVLC);
+                    mMediaPlayer.setMedia(new Media(sLibVLC, mUri));
+                    mMediaPlayer.getVLCVout().addCallback(new IVLCVout.Callback() {
                         @Override
-                        public void run() {
-                            requestLayout();
+                        public void onNewLayout(IVLCVout vlcVout, int width, int height, int visibleWidth, int visibleHeight, int sarNum, int sarDen) {
+                            Log.d(TAG, "onNewLayout: " + width + ", " + height + "," + visibleWidth + ", " + visibleHeight + "," + sarNum + "," + sarDen);
+                            mVideoWidth = width;
+                            mVideoHeight = height;
+                            post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    requestLayout();
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onSurfacesCreated(IVLCVout vlcVout) {
+                            Log.d(TAG, "onsurfaces created");
+                        }
+
+                        @Override
+                        public void onSurfacesDestroyed(IVLCVout vlcVout) {
+                            Log.d(TAG, "onsurfaces destroyed");
                         }
                     });
+                    mMediaPlayer.getVLCVout().setVideoView(VideoView.this);
+                    mMediaPlayer.getVLCVout().attachViews();
+
+                    mMediaPlayer.setEventListener(vlcEventListener);
+
+                    mCurrentState = STATE_PREPARING;
+                    mMediaPlayer.play();
+
+
+                } catch (Exception ex) {
+                    Log.w(TAG, "Unable to open content: " + mUri, ex);
+                    mCurrentState = STATE_ERROR;
+                    mTargetState = STATE_ERROR;
+                    if (vlcEventListener != null) {
+                        vlcEventListener.onEvent(new org.videolan.libvlc.MediaPlayer.Event(org.videolan.libvlc.MediaPlayer.Event.NoContent));
+                    }
+                    return;
                 }
-
-                @Override
-                public void onSurfacesCreated(IVLCVout vlcVout) {
-                    Log.d(TAG, "onsurfaces created");
-                }
-
-                @Override
-                public void onSurfacesDestroyed(IVLCVout vlcVout) {
-                    Log.d(TAG, "onsurfaces destroyed");
-                }
-            });
-            mMediaPlayer.getVLCVout().setVideoView(this);
-            mMediaPlayer.getVLCVout().attachViews();
-
-            mMediaPlayer.setEventListener(vlcEventListener);
-
-            mCurrentState = STATE_PREPARING;
-            mMediaPlayer.play();
-
-
-        } catch (Exception ex) {
-            Log.w(TAG, "Unable to open content: " + mUri, ex);
-            mCurrentState = STATE_ERROR;
-            mTargetState = STATE_ERROR;
-            if (vlcEventListener != null){
-                vlcEventListener.onEvent(new org.videolan.libvlc.MediaPlayer.Event(org.videolan.libvlc.MediaPlayer.Event.NoContent));
             }
-            return;
-        }
+        });
     }
 
     /*
      * release the media player in any state
      */
-    private void release(boolean cleartargetstate) {
-        if (mMediaPlayer != null) {
-            mMediaPlayer.stop();
-            mMediaPlayer = null;
+    private void release(final boolean cleartargetstate, final CompletionBlock completionBlock) {
+        Log.d(TAG,"videoview - release 1");
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "videoview - release 2");
+                if (mMediaPlayer != null) {
+                    mMediaPlayer.stop();
+                    mMediaPlayer = null;
 
-            mCurrentState = STATE_IDLE;
-            if (cleartargetstate) {
-                mTargetState = STATE_IDLE;
+                    mCurrentState = STATE_IDLE;
+                    if (cleartargetstate) {
+                        mTargetState = STATE_IDLE;
+                    }
+                }
+                Log.d(TAG, "videoview - release 3");
+                if (completionBlock != null) {
+                    completionBlock.complete();
+                }
             }
-        }
+        });
     }
     //endregion
 
@@ -319,7 +336,7 @@ public class VideoView extends SurfaceView
         int height = getDefaultSize(mVideoHeight, heightMeasureSpec);
         if (mVideoWidth > 0 && mVideoHeight > 0) {
 
-            Log.d(TAG,"------------- MEASURE-VIDEOVIEW");
+            Log.d(TAG, "------------- MEASURE-VIDEOVIEW");
 
             int widthSpecMode = MeasureSpec.getMode(widthMeasureSpec);
             int widthSpecSize = MeasureSpec.getSize(widthMeasureSpec);
@@ -481,6 +498,11 @@ public class VideoView extends SurfaceView
     //endregion
 
     //region Inner classes or interfaces
+
+    public interface CompletionBlock {
+        void complete();
+    }
+
     public interface VideoViewNativeCrashListener {
         void onNativeCrash();
     }
@@ -493,7 +515,7 @@ public class VideoView extends SurfaceView
     SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
         public void surfaceChanged(SurfaceHolder holder, int format,
                                    int w, int h) {
-            Log.d(TAG,"surfaceChanged!");
+            Log.d(TAG, "surfaceChanged!");
             mSurfaceWidth = w;
             mSurfaceHeight = h;
             boolean isValidState = (mTargetState == STATE_PLAYING);
@@ -511,7 +533,7 @@ public class VideoView extends SurfaceView
         public void surfaceDestroyed(SurfaceHolder holder) {
             // after we return from this we can't use the surface any more
             mSurfaceHolder = null;
-            release(true);
+            release(true,null);
         }
     };
     //endregion
