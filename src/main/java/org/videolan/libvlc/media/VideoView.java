@@ -151,28 +151,38 @@ public class VideoView extends SurfaceView
         setVideoURI(Uri.parse(path));
     }
 
-    public void setVideoURI(Uri uri) {
-        initLibVLC();
-        mUri = uri;
-        openVideo();
-        post(new Runnable() {
+    public void setVideoURI(final Uri uri) {
+        AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
-                requestLayout();
-                invalidate();
+                initLibVLC();
+                mUri = uri;
+                openVideo();
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        requestLayout();
+                        invalidate();
+                    }
+                });
             }
         });
     }
 
     public void stopPlayback() {
-        if (mMediaPlayer != null) {
-            Log.d(TAG,"stop playback");
-            mMediaPlayer.stop();
-            mMediaPlayer.release();
-            mMediaPlayer = null;
-            mCurrentState = STATE_IDLE;
-            mTargetState = STATE_IDLE;
-        }
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (mMediaPlayer != null) {
+                    Log.d(TAG,"stop playback");
+                    mMediaPlayer.stop();
+                    mMediaPlayer.release();
+                    mMediaPlayer = null;
+                    mCurrentState = STATE_IDLE;
+                    mTargetState = STATE_IDLE;
+                }
+            }
+        });
     }
 
     public int getVolume() {
